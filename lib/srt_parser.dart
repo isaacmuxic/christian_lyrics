@@ -247,12 +247,17 @@ List<Subtitle> parseSrt(String srt) {
 
   for (List<String> chunk in splitChunk) {
     final Subtitle subtitle = Subtitle();
-    subtitle.id = int.parse(chunk[0]);
-    subtitle.range = parseBeginEnd(chunk[1]);
-    subtitle.rawLines = chunk.sublist(2);
-    parseCoordinates(subtitle, chunk[1]);
-    parseHtml(subtitle);
-    result.add(subtitle);
+    final id = int.tryParse(chunk[0]);
+    if (id == null || id - 1 != result.length) // allow empty line in lyrics
+      result.last.rawLines += chunk;
+    else {
+      subtitle.id = id;
+      subtitle.range = parseBeginEnd(chunk[1]);
+      subtitle.rawLines = chunk.sublist(2);
+      parseCoordinates(subtitle, chunk[1]);
+      parseHtml(subtitle);
+      result.add(subtitle);
+    }
   }
 
   return result;
