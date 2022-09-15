@@ -246,18 +246,20 @@ List<Subtitle> parseSrt(String srt) {
   final List<List<String>> splitChunk = splitByEmptyLine(split);
 
   for (List<String> chunk in splitChunk) {
-    final Subtitle subtitle = Subtitle();
+    final Subtitle subtitle;
     final id = int.tryParse(chunk[0]);
-    if (id == null || id - 1 != result.length) // allow empty line in lyrics
-      result.last.rawLines += chunk;
-    else {
+    if (id == null || id - 1 != result.length) {
+      subtitle = result.removeLast();
+      subtitle.rawLines += chunk;
+    } else {
+      subtitle = Subtitle();
       subtitle.id = id;
       subtitle.range = parseBeginEnd(chunk[1]);
       subtitle.rawLines = chunk.sublist(2);
       parseCoordinates(subtitle, chunk[1]);
-      parseHtml(subtitle);
-      result.add(subtitle);
     }
+    parseHtml(subtitle);
+    result.add(subtitle);
   }
 
   return result;
