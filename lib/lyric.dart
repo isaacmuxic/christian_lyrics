@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 const _enable_paint_debug = false;
 
 class Lyric extends StatefulWidget {
-
   Lyric({
     required this.lyric,
     required this.size,
@@ -66,7 +65,6 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
 
   @override
   void didUpdateWidget(Lyric oldWidget) {
-
     //super.didUpdateWidget(oldWidget);
 
     if (widget.lyric != oldWidget.lyric) {
@@ -93,9 +91,8 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
 
   /// scroll lyric to current playing position
   void _scrollToCurrentPosition(int milliseconds, {bool animate = true}) {
-
     if (lyricPainter!.height == -1) {
-      WidgetsBinding.instance!.addPostFrameCallback((d) {
+      WidgetsBinding.instance.addPostFrameCallback((d) {
 //        debugPrint("try to init scroll to position ${widget.position.value},"
 //            "but lyricPainter is unavaiable, so scroll(without animate) on next frame $d");
         //TODO maybe cause bad performance
@@ -104,7 +101,8 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
       return;
     }
 
-    int line = widget.lyric.findLineByTimeStamp(milliseconds, lyricPainter!.currentLine);
+    int line = widget.lyric
+        .findLineByTimeStamp(milliseconds, lyricPainter!.currentLine);
 
     if (lyricPainter!.currentLine != line && !dragging) {
       double offset = lyricPainter!.computeScrollTo(line);
@@ -122,10 +120,11 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
             }
           });
 
-        Animation<double> animation =
-            Tween<double>(begin: lyricPainter!.offsetScroll, end: lyricPainter!.offsetScroll + offset)
-                .chain(CurveTween(curve: Curves.easeInOut))
-                .animate(_lineController!);
+        Animation<double> animation = Tween<double>(
+                begin: lyricPainter!.offsetScroll,
+                end: lyricPainter!.offsetScroll + offset)
+            .chain(CurveTween(curve: Curves.easeInOut))
+            .animate(_lineController!);
         animation.addListener(() {
           //print(animation.value);
           //lyricPainter!.offsetScroll = animation.value;
@@ -137,7 +136,8 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
         final startPercent = (milliseconds - entry.position) / entry.duration;
         _gradientController = AnimationController(
           vsync: this,
-          duration: Duration(milliseconds: (entry.duration - entry.position).toInt()),
+          duration:
+              Duration(milliseconds: (entry.duration - entry.position).toInt()),
         );
         _gradientController!.addListener(() {
           lyricPainter!.lineGradientPercent = _gradientController!.value;
@@ -147,11 +147,9 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
         } else {
           _gradientController!.value = startPercent;
         }
-
       } else {
         lyricPainter!.offsetScroll += offset;
       }
-
     }
     lyricPainter!.currentLine = line;
   }
@@ -221,34 +219,34 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
               lyricPainter!.repaint();
             })
             ..addStatusListener((status) {
-              if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+              if (status == AnimationStatus.completed ||
+                  status == AnimationStatus.dismissed) {
                 dragging = false;
                 _flingController?.dispose();
                 _flingController = null;
               }
             })
-            ..animateWith(
-                ClampingScrollSimulation(position: lyricPainter!.offsetScroll, velocity: details.primaryVelocity!));
+            ..animateWith(ClampingScrollSimulation(
+                position: lyricPainter!.offsetScroll,
+                velocity: details.primaryVelocity!));
         },
         child: Stack(
           children: [
-            RepaintBoundary(child: CustomPaint(
+            RepaintBoundary(
+                child: CustomPaint(
               isComplex: true,
               willChange: true,
               size: widget.size,
               painter: lyricPainter,
             )),
-
             StreamBuilder(
-              stream: widget.streamPosition!.stream,
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                final result = snapshot.data ?? 0;
-                widget.position = result;
-                _scrollToCurrentPosition(widget.position);
-                return const Center();
-              }
-            )
-
+                stream: widget.streamPosition!.stream,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  final result = snapshot.data ?? 0;
+                  widget.position = result;
+                  _scrollToCurrentPosition(widget.position);
+                  return const Center();
+                })
           ],
         ),
       ),
@@ -257,7 +255,6 @@ class LyricState extends State<Lyric> with TickerProviderStateMixin {
 }
 
 class LyricPainter extends ChangeNotifier implements CustomPainter {
-
   bool preload = false;
   int maxLinePaint = 3;
   double tmpPreDy = 0;
@@ -285,7 +282,8 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
   }
 
   set offsetScroll(double value) {
-    if (height == -1) return; // do not change offset when height is not available.
+    if (height == -1)
+      return; // do not change offset when height is not available.
     _offsetScroll = value.clamp(-height, 0.0);
     repaint();
   }
@@ -297,11 +295,14 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
   late TextStyle _styleHighlight;
 
   ///param lyric must not be null
-  LyricPainter(TextStyle style, this.lyric, {this.textAlign = TextAlign.center, Color highlight = Colors.red}) {
+  LyricPainter(TextStyle style, this.lyric,
+      {this.textAlign = TextAlign.center, Color highlight = Colors.red}) {
     assert(lyric != null);
     lyricPainters = [];
     for (int i = 0; i < lyric!.size; i++) {
-      var painter = TextPainter(text: TextSpan(style: style, text: lyric![i].line), textAlign: textAlign);
+      var painter = TextPainter(
+          text: TextSpan(style: style, text: lyric![i].line),
+          textAlign: textAlign);
       painter.textDirection = TextDirection.ltr;
 //      painter.layout();//layout first, to get the height
       lyricPainters.add(painter);
@@ -318,7 +319,6 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
 
   @override
   void paint(ui.Canvas canvas, ui.Size size) {
-
     //print('re paint');
 
     _layoutPainterList(size);
@@ -342,7 +342,8 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
     tmpPreDy = dy;
   }
 
-  void _paintCurrentLine(ui.Canvas canvas, TextPainter painter, double dy, ui.Size size) {
+  void _paintCurrentLine(
+      ui.Canvas canvas, TextPainter painter, double dy, ui.Size size) {
     if (dy > size.height || dy < 0 - painter.height) {
       return;
     }
@@ -351,7 +352,8 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
     drawLine(canvas, painter, dy, size);
 
     _highlightPainter
-      ..text = TextSpan(text: (painter.text as TextSpan).text, style: _styleHighlight)
+      ..text = TextSpan(
+          text: (painter.text as TextSpan).text, style: _styleHighlight)
       ..textAlign = textAlign;
 
     _highlightPainter.layout(); //layout with unbound width
@@ -369,7 +371,8 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
       if (lineWidth < size.width) {
         dx = (size.width - lineWidth) / 2;
       }
-      highlightRegion.addRect(Rect.fromLTWH(0, dy + lineDy, dx + gradientWidth, lineHeight));
+      highlightRegion.addRect(
+          Rect.fromLTWH(0, dy + lineDy, dx + gradientWidth, lineHeight));
       lineWidth -= _highlightPainter.width;
       gradientWidth -= _highlightPainter.width;
       lineDy += lineHeight;
@@ -394,7 +397,8 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
   }
 
   ///draw a lyric line
-  void drawLine(ui.Canvas canvas, TextPainter painter, double dy, ui.Size size) {
+  void drawLine(
+      ui.Canvas canvas, TextPainter painter, double dy, ui.Size size) {
     if (dy > size.height || dy < 0 - painter.height) {
       return;
     }
@@ -449,7 +453,8 @@ class LyricPainter extends ChangeNotifier implements CustomPainter {
   get semanticsBuilder => null;
 
   @override
-  bool shouldRebuildSemantics(LyricPainter oldDelegate) => shouldRepaint((oldDelegate));
+  bool shouldRebuildSemantics(LyricPainter oldDelegate) =>
+      shouldRepaint((oldDelegate));
 }
 
 class LyricContent {
@@ -459,13 +464,13 @@ class LyricContent {
   static const int _default_line_duration = 5 * 1000;
 
   LyricContent.from(String text) {
-
     //Parse srt
     List<Subtitle> srtContent = parseSrt(text);
 
     for (Subtitle item in srtContent) {
       _durations.add(item.range!.begin);
-      _lyricEntries.add(LyricEntry(item.rawLines.join("\n"), item.range!.begin, item.range!.end));
+      _lyricEntries.add(LyricEntry(
+          item.rawLines.join("\n"), item.range!.begin, item.range!.end));
     }
   }
 
@@ -534,12 +539,15 @@ class LyricEntry {
     final int indexOfPoint = stamp.indexOf(".");
 
     final int minute = int.parse(stamp.substring(1, indexOfColon));
-    final int second = int.parse(stamp.substring(indexOfColon + 1, indexOfPoint));
+    final int second =
+        int.parse(stamp.substring(indexOfColon + 1, indexOfPoint));
     int millisecond;
     if (stamp.length - indexOfPoint == 2) {
-      millisecond = int.parse(stamp.substring(indexOfPoint + 1, stamp.length)) * 10;
+      millisecond =
+          int.parse(stamp.substring(indexOfPoint + 1, stamp.length)) * 10;
     } else {
-      millisecond = int.parse(stamp.substring(indexOfPoint + 1, stamp.length - 1));
+      millisecond =
+          int.parse(stamp.substring(indexOfPoint + 1, stamp.length - 1));
     }
     return ((((minute * 60) + second) * 1000) + millisecond);
   }
@@ -562,7 +570,8 @@ class LyricEntry {
     }
   }
 
-  LyricEntry(this.line, this.position, this.duration) : this.timeStamp = getTimeStamp(position);
+  LyricEntry(this.line, this.position, this.duration)
+      : this.timeStamp = getTimeStamp(position);
 
   final String timeStamp;
   final String line;
@@ -580,7 +589,10 @@ class LyricEntry {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LyricEntry && runtimeType == other.runtimeType && line == other.line && timeStamp == other.timeStamp;
+      other is LyricEntry &&
+          runtimeType == other.runtimeType &&
+          line == other.line &&
+          timeStamp == other.timeStamp;
 
   @override
   int get hashCode => line.hashCode ^ timeStamp.hashCode;
@@ -597,7 +609,6 @@ String getTimeStamp(int milliseconds) {
 }
 
 class PlayingLyric {
-
   CancelableOperation? _lyricLoader;
 
   String _message = 'Lyric not found';
